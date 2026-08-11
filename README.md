@@ -9,4 +9,4 @@ This is a multi-module Streamlit application built for my Capstone Challenge. It
 * **Module C: Data Dashboard:** An interactive dashboard for uploading, filtering, and visualizing rock and fluid property datasets.
 
 ## Live Application
-*(Link to the live Streamlit app will be added here once deployed)*
+*(https://capstone-engineering-app-vvxkxblt7peegrhz4lemrt.streamlit.app/)*

@@ -1,0 +1,16 @@
+Sample_ID,Depth_m,Porosity_percent,Permeability_mD,Rock_Type,Fluid_Saturation
+1,1500,12.5,45.2,Sandstone,0.65
+2,1510,14.2,85.1,Sandstone,0.70
+3,1520,8.5,12.4,Limestone,0.45
+4,1530,16.1,120.5,Sandstone,0.75
+5,1540,5.2,1.2,Shale,0.20
+6,1550,11.8,38.6,Limestone,0.55
+7,1560,18.4,210.3,Sandstone,0.80
+8,1570,7.1,5.8,Shale,0.30
+9,1580,13.6,65.0,Limestone,0.60
+10,1590,15.5,95.4,Sandstone,0.72
+11,1600,9.2,18.7,Limestone,0.50
+12,1610,6.4,2.5,Shale,0.25
+13,1620,17.2,180.0,Sandstone,0.78
+14,1630,10.5,25.3,Limestone,0.52
+15,1640,4.8,0.8,Shale,0.15

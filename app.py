@@ -1,0 +1,187 @@
+import streamlit as st
+import pandas as pd
+import numpy as np
+import plotly.express as px
+import io
+from engineering import Fluid, Pipe, fourier_conduction, newtons_cooling
+
+# ==========================================
+# APP CONFIGURATION
+# ==========================================
+st.set_page_config(page_title="Engineering Suite", layout="wide")
+
+# Navigation Sidebar
+st.sidebar.title("Navigation")
+page = st.sidebar.radio("Go to", ["Module A: Pipe Flow Analyser", 
+                                  "Module B: Heat Transfer Calculator", 
+                                  "Module C: Data Dashboard"])
+
+# ==========================================
+# MODULE A: PIPE FLOW ANALYSER
+# ==========================================
+if page == "Module A: Pipe Flow Analyser":
+    st.title("Fluid Flow & Pipe Analyser")
+    st.write("Calculate fluid properties and pressure drop across a pipe system.")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.subheader("1. Fluid Properties")
+        fluid_choice = st.selectbox("Select Fluid", ["Water", "Air", "Crude Oil (Light)", "Custom"])
+        
+        # Auto-populate properties based on selection
+        if fluid_choice == "Water":
+            rho, mu = 998.2, 1.002e-3
+        elif fluid_choice == "Air":
+            rho, mu = 1.204, 1.825e-5
+        elif fluid_choice == "Crude Oil (Light)":
+            rho, mu = 850.0, 1.500e-2
+        else:
+            rho = st.number_input("Density (kg/m³)", min_value=0.1, value=1000.0)
+            mu = st.number_input("Dynamic Viscosity (Pa·s)", min_value=0.00001, value=0.001, format="%.5f")
+            
+        st.info(f"**Using Density:** {rho} kg/m³ | **Viscosity:** {mu} Pa·s")
+        current_fluid = Fluid(fluid_choice, rho, mu)
+
+    with col2:
+        st.subheader("2. Pipe Geometry & Flow")
+        D = st.number_input("Pipe Diameter (m)", min_value=0.01, value=0.1)
+        L = st.number_input("Pipe Length (m)", min_value=1.0, value=100.0)
+        roughness = st.number_input("Pipe Roughness (m)", min_value=0.0, value=0.000045, format="%.6f")
+        Q = st.number_input("Flow Rate (m³/s)", min_value=0.0, value=0.05)
+        
+        current_pipe = Pipe(D, L, roughness)
+
+    st.markdown("---")
+    
+    # Calculations & Results
+    if st.button("Calculate Flow Properties"):
+        try:
+            vel = current_pipe.velocity(Q)
+            re = current_pipe.reynolds_number(current_fluid, Q)
+            f = current_pipe.friction_factor(current_fluid, Q)
+            dp = current_pipe.pressure_drop(current_fluid, Q)
+            
+            st.subheader("Results")
+            r_col1, r_col2, r_col3, r_col4 = st.columns(4)
+            r_col1.metric("Velocity", f"{vel:.2f} m/s")
+            r_col2.metric("Reynolds Number", f"{re:.0f}")
+            r_col3.metric("Friction Factor", f"{f:.4f}")
+            r_col4.metric("Pressure Drop", f"{dp/1000:.2f} kPa")
+            
+            # Interactive Plot
+            st.subheader("Pressure Drop vs. Flow Rate")
+            q_values = np.linspace(0.01, Q * 2, 20)
+            dp_values = [current_pipe.pressure_drop(current_fluid, q) / 1000 for q in q_values]
+            
+            df_plot = pd.DataFrame({"Flow Rate (m³/s)": q_values, "Pressure Drop (kPa)": dp_values})
+            fig = px.line(df_plot, x="Flow Rate (m³/s)", y="Pressure Drop (kPa)", markers=True)
+            st.plotly_chart(fig, use_container_width=True)
+            
+            # CSV Export
+            csv = df_plot.to_csv(index=False).encode('utf-8')
+            st.download_button(label="Download Plot Data as CSV", data=csv, file_name='pipe_flow_data.csv', mime='text/csv')
+            
+        except Exception as e:
+            st.error(f"Error in calculation: {e}")
+
+# ==========================================
+# MODULE B: HEAT TRANSFER CALCULATOR
+# ==========================================
+elif page == "Module B: Heat Transfer Calculator":
+    st.title("Heat Transfer Calculator")
+    
+    st.header("1. Steady-State Conduction (Flat Wall)")
+    st.write("Calculates heat transfer through a single-layer wall using Fourier's Law.")
+    
+    c1, c2, c3 = st.columns(3)
+    k = c1.number_input("Thermal Conductivity (W/m·K)", min_value=0.01, value=0.6, help="Ability of material to conduct heat (e.g. Brick = 0.6)")
+    area = c2.number_input("Wall Area (m²)", min_value=0.1, value=10.0, help="Surface area perpendicular to heat flow")
+    thickness = c3.number_input("Wall Thickness (m)", min_value=0.01, value=0.2, help="Distance heat travels through the wall")
+    
+    c4, c5 = st.columns(2)
+    T_hot = c4.number_input("Hot Temp (°C)", value=30.0)
+    T_cold = c5.number_input("Cold Temp (°C)", value=10.0)
+    
+    if st.button("Calculate Conduction"):
+        q = fourier_conduction(k, area, thickness, T_hot, T_cold)
+        st.success(f"**Heat Transfer Rate:** {q:.2f} Watts")
+
+    st.markdown("---")
+    
+    st.header("2. Newton's Law of Cooling")
+    st.write("Predicts how fast an object cools down in a given environment.")
+    
+    nc1, nc2, nc3 = st.columns(3)
+    T0 = nc1.slider("Initial Temp (°C)", 0.0, 200.0, 100.0, help="Starting temperature of the object")
+    T_inf = nc2.slider("Ambient Temp (°C)", 0.0, 50.0, 20.0, help="Temperature of the surrounding environment")
+    r = nc3.slider("Cooling Rate Constant (1/s)", 0.001, 0.1, 0.05, step=0.001, help="Depends on geometry and material. Higher = faster cooling.")
+    
+    # Real-time plot updates based on sliders
+    t_max = st.slider("Simulation Time (seconds)", 10, 300, 100)
+    times = np.linspace(0, t_max, 100)
+    temps = newtons_cooling(T0, T_inf, r, times)
+    
+    df_cooling = pd.DataFrame({"Time (s)": times, "Temperature (°C)": temps})
+    fig2 = px.line(df_cooling, x="Time (s)", y="Temperature (°C)", title="Cooling Curve")
+    # Add a horizontal line for ambient temperature
+    fig2.add_hline(y=T_inf, line_dash="dash", annotation_text="Ambient Temp", annotation_position="bottom right")
+    st.plotly_chart(fig2, use_container_width=True)
+
+# ==========================================
+# MODULE C: ROCK & FLUID DATA DASHBOARD
+# ==========================================
+elif page == "Module C: Data Dashboard":
+    st.title("Data Dashboard")
+    st.write("Upload a CSV file containing rock/fluid data to view statistics and charts.")
+    
+    uploaded_file = st.file_uploader("Upload CSV", type=['csv'])
+    
+    if uploaded_file is not None:
+        try:
+            df = pd.read_csv(uploaded_file)
+            st.success("File uploaded successfully!")
+            
+            # Show raw data & statistics
+            st.subheader("Data Summary")
+            st.dataframe(df.head())
+            st.write(df.describe())
+            
+            st.markdown("---")
+            
+            # Assuming standard column names for the assignment, we look for Porosity/Permeability
+            cols = df.columns.tolist()
+            
+            st.subheader("Interactive Filtering & Visualization")
+            # Let user select which column to filter by
+            filter_col = st.selectbox("Select column to filter by:", cols)
+            min_val = float(df[filter_col].min())
+            max_val = float(df[filter_col].max())
+            
+            cutoff = st.slider(f"Minimum {filter_col}", min_val, max_val, min_val)
+            filtered_df = df[df[filter_col] >= cutoff]
+            
+            st.write(f"Showing {len(filtered_df)} of {len(df)} samples.")
+            
+            # Plots
+            if len(cols) >= 2:
+                col1, col2 = st.columns(2)
+                with col1:
+                    hist_fig = px.histogram(filtered_df, x=filter_col, title=f"Distribution of {filter_col}")
+                    st.plotly_chart(hist_fig, use_container_width=True)
+                    
+                with col2:
+                    # Let user pick axes for scatter plot
+                    x_axis = st.selectbox("X-Axis", cols, index=0)
+                    y_axis = st.selectbox("Y-Axis", cols, index=1 if len(cols)>1 else 0)
+                    scatter_fig = px.scatter(filtered_df, x=x_axis, y=y_axis, title=f"{y_axis} vs {x_axis}")
+                    st.plotly_chart(scatter_fig, use_container_width=True)
+            
+            # Download filtered data
+            csv_filtered = filtered_df.to_csv(index=False).encode('utf-8')
+            st.download_button(label="Download Filtered Data (CSV)", data=csv_filtered, file_name='filtered_data.csv', mime='text/csv')
+            
+        except Exception as e:
+            st.error(f"Error processing file. Please ensure it is a valid CSV. Detail: {e}")
+    else:
+        st.info("Awaiting CSV file upload. Please generate or upload a dataset to begin.")

@@ -6,21 +6,104 @@ import io
 from engineering import Fluid, Pipe, fourier_conduction, newtons_cooling
 
 # ==========================================
-# APP CONFIGURATION
+# 1. ENTERPRISE PAGE CONFIGURATION
 # ==========================================
-st.set_page_config(page_title="Engineering Suite", layout="wide")
+st.set_page_config(
+    page_title="KNUST-01 Subsea Engineering Suite",
+    page_icon="🌊",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
 
-# Navigation Sidebar
-st.sidebar.title("Navigation")
-page = st.sidebar.radio("Go to", ["Module A: Pipe Flow Analyser", 
-                                  "Module B: Heat Transfer Calculator", 
-                                  "Module C: Data Dashboard"])
+# ==========================================
+# 2. PROPRIETARY CSS INJECTION
+# ==========================================
+st.markdown("""
+    <style>
+    /* Import modern sleek font */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap');
+    
+    html, body, [class*="css"] {
+        font-family: 'Inter', sans-serif;
+    }
+    
+    /* Hide Streamlit Branding for a standalone app feel */
+    header {visibility: hidden;}
+    footer {visibility: hidden;}
+    
+    /* Style the Sidebar to look like a premium control panel */
+    [data-testid="stSidebar"] {
+        border-right: 1px solid #1F2937;
+        box-shadow: 2px 0 10px rgba(0,0,0,0.5);
+    }
+    
+    /* Executive Metric Cards */
+    div[data-testid="metric-container"] {
+        background-color: #111827;
+        border: 1px solid #1F2937;
+        padding: 5% 5% 5% 10%;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+        border-left: 4px solid #00E5FF;
+    }
+    
+    /* High-Grade Action Buttons */
+    .stButton > button {
+        background: linear-gradient(90deg, #0052D4 0%, #4364F7 50%, #6FB1FC 100%);
+        color: white;
+        border: none;
+        border-radius: 6px;
+        padding: 10px 24px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        transition: all 0.3s ease;
+        width: 100%;
+    }
+    .stButton > button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 15px rgba(67, 100, 247, 0.4);
+        color: white;
+        border: none;
+    }
+    
+    /* File Uploader Customization */
+    [data-testid="stFileUploadDropzone"] {
+        background-color: #111827;
+        border: 2px dashed #374151;
+        border-radius: 10px;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
+# ==========================================
+# 3. SIDEBAR NAVIGATION
+# ==========================================
+with st.sidebar:
+    st.title("KNUST-01")
+    st.caption("Deepwater Engineering Suite v2.0")
+    st.divider()
+    
+    page = st.radio(
+        "SYSTEM NAVIGATION",
+        ["Module A: Pipe Flow Analyser", 
+         "Module B: Heat Transfer Calculator", 
+         "Module C: Data Dashboard"]
+    )
+    
+    st.divider()
+    st.caption("© 2026 Subsea Thermodynamics Dept.")
+
+# ==========================================
+# 4. MAIN APP HEADER
+# ==========================================
+st.title("Fluid & Thermodynamic Analytics")
+st.markdown("---")
 
 # ==========================================
 # MODULE A: PIPE FLOW ANALYSER
 # ==========================================
 if page == "Module A: Pipe Flow Analyser":
-    st.title("Fluid Flow & Pipe Analyser")
+    st.header("Fluid Flow & Pipe Analyser")
     st.write("Calculate fluid properties and pressure drop across a pipe system.")
     
     col1, col2 = st.columns(2)
@@ -76,6 +159,7 @@ if page == "Module A: Pipe Flow Analyser":
             
             df_plot = pd.DataFrame({"Flow Rate (m³/s)": q_values, "Pressure Drop (kPa)": dp_values})
             fig = px.line(df_plot, x="Flow Rate (m³/s)", y="Pressure Drop (kPa)", markers=True)
+            fig.update_layout(plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)", font_color="#F0F4F8")
             st.plotly_chart(fig, use_container_width=True)
             
             # CSV Export
@@ -89,9 +173,9 @@ if page == "Module A: Pipe Flow Analyser":
 # MODULE B: HEAT TRANSFER CALCULATOR
 # ==========================================
 elif page == "Module B: Heat Transfer Calculator":
-    st.title("Heat Transfer Calculator")
+    st.header("Heat Transfer Calculator")
     
-    st.header("1. Steady-State Conduction (Flat Wall)")
+    st.subheader("1. Steady-State Conduction (Flat Wall)")
     st.write("Calculates heat transfer through a single-layer wall using Fourier's Law.")
     
     c1, c2, c3 = st.columns(3)
@@ -109,7 +193,7 @@ elif page == "Module B: Heat Transfer Calculator":
 
     st.markdown("---")
     
-    st.header("2. Newton's Law of Cooling")
+    st.subheader("2. Newton's Law of Cooling")
     st.write("Predicts how fast an object cools down in a given environment.")
     
     nc1, nc2, nc3 = st.columns(3)
@@ -124,15 +208,15 @@ elif page == "Module B: Heat Transfer Calculator":
     
     df_cooling = pd.DataFrame({"Time (s)": times, "Temperature (°C)": temps})
     fig2 = px.line(df_cooling, x="Time (s)", y="Temperature (°C)", title="Cooling Curve")
-    # Add a horizontal line for ambient temperature
     fig2.add_hline(y=T_inf, line_dash="dash", annotation_text="Ambient Temp", annotation_position="bottom right")
+    fig2.update_layout(plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)", font_color="#F0F4F8")
     st.plotly_chart(fig2, use_container_width=True)
 
 # ==========================================
 # MODULE C: ROCK & FLUID DATA DASHBOARD
 # ==========================================
 elif page == "Module C: Data Dashboard":
-    st.title("Data Dashboard")
+    st.header("Data Dashboard")
     st.write("Upload a CSV file containing rock/fluid data to view statistics and charts.")
     
     uploaded_file = st.file_uploader("Upload CSV", type=['csv'])
@@ -149,7 +233,6 @@ elif page == "Module C: Data Dashboard":
             
             st.markdown("---")
             
-            # Assuming standard column names for the assignment, we look for Porosity/Permeability
             cols = df.columns.tolist()
             
             st.subheader("Interactive Filtering & Visualization")
@@ -161,13 +244,14 @@ elif page == "Module C: Data Dashboard":
             cutoff = st.slider(f"Minimum {filter_col}", min_val, max_val, min_val)
             filtered_df = df[df[filter_col] >= cutoff]
             
-            st.write(f"Showing {len(filtered_df)} of {len(df)} samples.")
+            st.write(f"Showing **{len(filtered_df)}** of **{len(df)}** samples.")
             
             # Plots
             if len(cols) >= 2:
                 col1, col2 = st.columns(2)
                 with col1:
                     hist_fig = px.histogram(filtered_df, x=filter_col, title=f"Distribution of {filter_col}")
+                    hist_fig.update_layout(plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)", font_color="#F0F4F8")
                     st.plotly_chart(hist_fig, use_container_width=True)
                     
                 with col2:
@@ -175,6 +259,7 @@ elif page == "Module C: Data Dashboard":
                     x_axis = st.selectbox("X-Axis", cols, index=0)
                     y_axis = st.selectbox("Y-Axis", cols, index=1 if len(cols)>1 else 0)
                     scatter_fig = px.scatter(filtered_df, x=x_axis, y=y_axis, title=f"{y_axis} vs {x_axis}")
+                    scatter_fig.update_layout(plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)", font_color="#F0F4F8")
                     st.plotly_chart(scatter_fig, use_container_width=True)
             
             # Download filtered data

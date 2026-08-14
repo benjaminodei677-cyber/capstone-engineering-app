@@ -20,15 +20,13 @@ st.set_page_config(
 # ==========================================
 st.markdown("""
     <style>
-    /* Import modern sleek font */
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap');
     
     html, body, [class*="css"] {
         font-family: 'Inter', sans-serif;
     }
     
-    /* Hide Streamlit Branding for a standalone app feel */
-    header {visibility: hidden;}
+    /* Keep header visible so sidebar toggle arrow remains accessible */
     footer {visibility: hidden;}
     
     /* Style the Sidebar to look like a premium control panel */

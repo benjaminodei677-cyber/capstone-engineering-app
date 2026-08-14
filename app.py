@@ -112,7 +112,6 @@ if page == "Module A: Pipe Flow Analyser":
         st.subheader("1. Fluid Properties")
         fluid_choice = st.selectbox("Select Fluid", ["Water", "Air", "Crude Oil (Light)", "Custom"])
         
-        # Auto-populate properties based on selection
         if fluid_choice == "Water":
             rho, mu = 998.2, 1.002e-3
         elif fluid_choice == "Air":
@@ -137,7 +136,6 @@ if page == "Module A: Pipe Flow Analyser":
 
     st.markdown("---")
     
-    # Calculations & Results
     if st.button("Calculate Flow Properties"):
         try:
             vel = current_pipe.velocity(Q)
@@ -152,7 +150,6 @@ if page == "Module A: Pipe Flow Analyser":
             r_col3.metric("Friction Factor", f"{f:.4f}")
             r_col4.metric("Pressure Drop", f"{dp/1000:.2f} kPa")
             
-            # Interactive Plot
             st.subheader("Pressure Drop vs. Flow Rate")
             q_values = np.linspace(0.01, Q * 2, 20)
             dp_values = [current_pipe.pressure_drop(current_fluid, q) / 1000 for q in q_values]
@@ -162,7 +159,6 @@ if page == "Module A: Pipe Flow Analyser":
             fig.update_layout(plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)", font_color="#F0F4F8")
             st.plotly_chart(fig, use_container_width=True)
             
-            # CSV Export
             csv = df_plot.to_csv(index=False).encode('utf-8')
             st.download_button(label="Download Plot Data as CSV", data=csv, file_name='pipe_flow_data.csv', mime='text/csv')
             
@@ -179,9 +175,9 @@ elif page == "Module B: Heat Transfer Calculator":
     st.write("Calculates heat transfer through a single-layer wall using Fourier's Law.")
     
     c1, c2, c3 = st.columns(3)
-    k = c1.number_input("Thermal Conductivity (W/m·K)", min_value=0.01, value=0.6, help="Ability of material to conduct heat (e.g. Brick = 0.6)")
-    area = c2.number_input("Wall Area (m²)", min_value=0.1, value=10.0, help="Surface area perpendicular to heat flow")
-    thickness = c3.number_input("Wall Thickness (m)", min_value=0.01, value=0.2, help="Distance heat travels through the wall")
+    k = c1.number_input("Thermal Conductivity (W/m·K)", min_value=0.01, value=0.6)
+    area = c2.number_input("Wall Area (m²)", min_value=0.1, value=10.0)
+    thickness = c3.number_input("Wall Thickness (m)", min_value=0.01, value=0.2)
     
     c4, c5 = st.columns(2)
     T_hot = c4.number_input("Hot Temp (°C)", value=30.0)
@@ -197,11 +193,10 @@ elif page == "Module B: Heat Transfer Calculator":
     st.write("Predicts how fast an object cools down in a given environment.")
     
     nc1, nc2, nc3 = st.columns(3)
-    T0 = nc1.slider("Initial Temp (°C)", 0.0, 200.0, 100.0, help="Starting temperature of the object")
-    T_inf = nc2.slider("Ambient Temp (°C)", 0.0, 50.0, 20.0, help="Temperature of the surrounding environment")
-    r = nc3.slider("Cooling Rate Constant (1/s)", 0.001, 0.1, 0.05, step=0.001, help="Depends on geometry and material. Higher = faster cooling.")
+    T0 = nc1.slider("Initial Temp (°C)", 0.0, 200.0, 100.0)
+    T_inf = nc2.slider("Ambient Temp (°C)", 0.0, 50.0, 20.0)
+    r = nc3.slider("Cooling Rate Constant (1/s)", 0.001, 0.1, 0.05, step=0.001)
     
-    # Real-time plot updates based on sliders
     t_max = st.slider("Simulation Time (seconds)", 10, 300, 100)
     times = np.linspace(0, t_max, 100)
     temps = newtons_cooling(T0, T_inf, r, times)
@@ -226,7 +221,6 @@ elif page == "Module C: Data Dashboard":
             df = pd.read_csv(uploaded_file)
             st.success("File uploaded successfully!")
             
-            # Show raw data & statistics
             st.subheader("Data Summary")
             st.dataframe(df.head())
             st.write(df.describe())
@@ -236,7 +230,6 @@ elif page == "Module C: Data Dashboard":
             cols = df.columns.tolist()
             
             st.subheader("Interactive Filtering & Visualization")
-            # Let user select which column to filter by
             filter_col = st.selectbox("Select column to filter by:", cols)
             min_val = float(df[filter_col].min())
             max_val = float(df[filter_col].max())
@@ -246,7 +239,6 @@ elif page == "Module C: Data Dashboard":
             
             st.write(f"Showing **{len(filtered_df)}** of **{len(df)}** samples.")
             
-            # Plots
             if len(cols) >= 2:
                 col1, col2 = st.columns(2)
                 with col1:
@@ -255,14 +247,12 @@ elif page == "Module C: Data Dashboard":
                     st.plotly_chart(hist_fig, use_container_width=True)
                     
                 with col2:
-                    # Let user pick axes for scatter plot
                     x_axis = st.selectbox("X-Axis", cols, index=0)
                     y_axis = st.selectbox("Y-Axis", cols, index=1 if len(cols)>1 else 0)
                     scatter_fig = px.scatter(filtered_df, x=x_axis, y=y_axis, title=f"{y_axis} vs {x_axis}")
                     scatter_fig.update_layout(plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)", font_color="#F0F4F8")
                     st.plotly_chart(scatter_fig, use_container_width=True)
             
-            # Download filtered data
             csv_filtered = filtered_df.to_csv(index=False).encode('utf-8')
             st.download_button(label="Download Filtered Data (CSV)", data=csv_filtered, file_name='filtered_data.csv', mime='text/csv')
             

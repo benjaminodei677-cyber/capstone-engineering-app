@@ -51,11 +51,16 @@ st.markdown("""
         letter-spacing: -0.5px;
     }
 
-    /* Glassmorphism Sidebar */
+    /* High-Contrast Distinct Sidebar */
     [data-testid="stSidebar"] {
-        background-color: rgba(3, 7, 18, 0.9) !important;
-        backdrop-filter: blur(20px);
-        border-right: 1px solid rgba(255, 255, 255, 0.04);
+        background-color: #080c14 !important;
+        border-right: 2px solid rgba(0, 229, 255, 0.25) !important;
+        box-shadow: 5px 0 25px rgba(0, 0, 0, 0.8);
+    }
+    
+    /* Ensure sidebar text and navigation options are ultra-clear */
+    [data-testid="stSidebar"] span, [data-testid="stSidebar"] div {
+        color: #F8FAFC !important;
     }
     
     /* Executive Bento Cards */
